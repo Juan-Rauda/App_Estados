@@ -8,6 +8,9 @@ export default {
     extend: {},
   },
   // eslint-disable-next-line no-undef
-  plugins: [ require( "daisyui" ) ],
+  plugins: [require("daisyui")],
+  daisyui: {
+    themes: ['light'], // Puedes especificar 'light' para que use el tema claro
+  },
 }
 

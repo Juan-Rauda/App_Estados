@@ -1,49 +1,73 @@
 import { defineStore } from 'pinia';
 
 export const useProyectosStore = defineStore('proyectos', {
-   state:() => ({
-    proyectos: [] as { 
-        id: string, 
-        nombre: string; 
-        tareas: { id: string; nombre: string; completada: boolean }[]; 
-        progreso: number 
+  state: () => ({
+    proyectos: JSON.parse(localStorage.getItem('proyectos') || '[]') as {
+      id: string;
+      nombre: string;
+      tareas: { nombre: string; fecha: string }[];
+      progreso: number;
     }[],
-   }),
-   actions: {
-    agregarProyecto(nombreProyecto: string){
-        /*this.proyectos.push({ id: Date.now().toString(), nombre: nombreProyecto, tareas: 0, progreso: 0 });*/
-        const proyecto = { 
-            id: Date.now().toString(), 
-            nombre: nombreProyecto, 
-            tareas: [], 
-            progreso: 0 };
-        this.proyectos.push(proyecto);
+  }),
+  actions: {
+    agregarProyecto(nombreProyecto: string) {
+      const nuevoProyecto = {
+        id: Date.now().toString(),
+        nombre: nombreProyecto,
+        tareas: [],
+        progreso: 0,
+      };
+      this.proyectos.push(nuevoProyecto);
+      localStorage.setItem('proyectos', JSON.stringify(this.proyectos));
+      console.log('Nuevo proyecto:', nuevoProyecto);
     },
-    incrementarTareas(idProyecto: string){
-            const proyecto = this.proyectos.find((proyecto) => proyecto.id === idProyecto);
-            if (proyecto) {
-              // Agregar una tarea nueva para incrementar el conteo
-              const nuevaTarea = {
-                id: Date.now().toString(),
-                nombre: `Tarea ${proyecto.tareas.length + 1}`,
-                completada: false,
-              };
-              proyecto.tareas.push(nuevaTarea);
-            }
+    agregarTarea(proyectoId: string, nombreTarea: string) {
+      const proyecto = this.proyectos.find((p) => p.id === proyectoId);
+      if (proyecto) {
+        proyecto.tareas.push({
+          nombre: nombreTarea,
+          fecha: new Date().toISOString(), // Agrega la fecha actual
+        });
+        this.actualizarProgreso(proyectoId);
+        localStorage.setItem('proyectos', JSON.stringify(this.proyectos));
+      }
     },
-    actualizarProgreso(i: number){
-     
+    eliminarTarea(proyectoId: string, index: number) {
+      const proyecto = this.proyectos.find((p) => p.id === proyectoId);
+      if (proyecto) {
+        proyecto.tareas.splice(index, 1);
+        this.actualizarProgreso(proyectoId);
+        localStorage.setItem('proyectos', JSON.stringify(this.proyectos));
+      }
     },
-    agregarTarea(idProyecto: string, nombreTarea: string){
-            const proyecto = this.proyectos.find((proyecto) => proyecto.id === idProyecto);
-            if (proyecto) {
-              // Agregar una tarea nueva para incrementar el conteo
-              proyecto.tareas.push({
-                id: Date.now().toString(),
-                nombre: nombreTarea,
-                completada: false,
-              });
-            }
-    }
-   } 
+    actualizarTarea(proyectoId: string, index: number, nuevoNombre: string) {
+      const proyecto = this.proyectos.find((p) => p.id === proyectoId);
+      if (proyecto && proyecto.tareas[index]) {
+        proyecto.tareas[index].nombre = nuevoNombre;
+        localStorage.setItem('proyectos', JSON.stringify(this.proyectos));
+      }
+    },
+    actualizarProgreso(proyectoId: string) {
+      const proyecto = this.proyectos.find((p) => p.id === proyectoId);
+      if (proyecto) {
+        proyecto.progreso = (proyecto.tareas.length / 10) * 100;
+        localStorage.setItem('proyectos', JSON.stringify(this.proyectos));
+      }
+    },
+    // eliminarTodosProyectos() {
+    //   this.proyectos = []; // Limpiar la lista de proyectos en el estado
+    //   localStorage.removeItem('proyectos'); // Eliminar de localStorage
+    // },
+    eliminarProyectoPorId(id: string) {
+      this.proyectos = this.proyectos.filter((proyecto) => proyecto.id !== id);
+      localStorage.setItem('proyectos', JSON.stringify(this.proyectos));
+    },
+    actualizarProyectoNombre(id: string, nuevoNombre: string) {
+      const proyecto = this.proyectos.find((p) => p.id === id);
+      if (proyecto) {
+        proyecto.nombre = nuevoNombre;
+        localStorage.setItem('proyectos', JSON.stringify(this.proyectos));
+      }
+    },
+  },
 });
